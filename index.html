@@ -121,7 +121,8 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
 #fc-card.flipped #fc-card-inner{transform:rotateY(180deg);}
 .fc-face{position:absolute;inset:0;backface-visibility:hidden;background:#FFFFFF;border:0.5px solid #E1DDCF;border-radius:14px;padding:26px 24px;display:flex;flex-direction:column;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .fc-face-back{transform:rotateY(180deg);}
-.fc-pill{align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;font-weight:500;margin-bottom:14px;}
+.fc-pill{align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;font-weight:500;margin-bottom:8px;}
+.fc-card-accuracy{font-size:11px;color:#8a8879;margin-bottom:10px;}
 .fc-front-title{font-size:19px;font-weight:500;line-height:1.55;}
 .fc-cloze-heading{font-size:13px;color:#8a8879;font-weight:500;margin-bottom:12px;}
 .fc-front-sub{font-size:13px;color:#8a8879;margin-top:10px;}
@@ -197,6 +198,7 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
   #fc-progress-bar{background:#4C8A76;}
   .fc-face{background:#1E1E1A;border-color:#3A3A34;}
   .fc-front-sub{color:#8f8d7f;}
+  .fc-card-accuracy{color:#8f8d7f;}
   .fc-cloze-heading{color:#8f8d7f;}
   .fc-back-text{color:#EDEBE2;}
   .fc-back-note{color:#8f8d7f;border-top-color:#2C2C27;}
@@ -454,8 +456,24 @@ function buildQuizDeck(subjectId){
   }
   return {id: subjectId + '-quiz', subject: subjectId, title: '🎲 抜き打ち10問', cards: quizCache[subjectId]};
 }
+function weaknessScore(cardId){
+  var t = cardTallyFor(cardId, currentMode);
+  var total = t.ok + t.meh + t.bad;
+  if (total === 0) return { score: 0.5, total: 0 };
+  return { score: (t.bad * 2 + t.meh * 1) / total, total: total };
+}
+function buildWeakPriorityDeck(subjectId){
+  var all = buildAllDeck(subjectId);
+  var scored = all.cards.map(function(cd){
+    var w = weaknessScore(cd.id);
+    return { card: cd, score: w.score, total: w.total };
+  }).filter(function(x){ return x.total === 0 || x.score > 0; });
+  scored.sort(function(a, b){ return b.score - a.score; });
+  var cards = scored.map(function(x){ return x.card; });
+  return {id: subjectId + '-priority', subject: subjectId, title: '🎯 弱点優先復習(' + cards.length + ')', cards: cards};
+}
 function getDeckList(subjectId){
-  return [buildAllDeck(subjectId), buildWeakDeck(subjectId), buildQuizDeck(subjectId)].concat(topicDecksFor(subjectId));
+  return [buildAllDeck(subjectId), buildWeakDeck(subjectId), buildQuizDeck(subjectId), buildWeakPriorityDeck(subjectId)].concat(topicDecksFor(subjectId));
 }
 
 function sessionKey(subj, mode){ return subj + ':' + mode; }
@@ -486,16 +504,16 @@ function ensureSession(subj, mode){
   return sess;
 }
 
+var completions = {};
+var ratings = {};
+var dailyLog = {};
+var totalReviews = 0;
+
 var currentSubject = 'hisu1';
 var currentMode = 'full';
 var state = ensureSession(currentSubject, currentMode);
 var flipped = false;
 var revealed = new Set();
-
-var completions = {};
-var ratings = {};
-var dailyLog = {};
-var totalReviews = 0;
 
 function todayDateStr(d){
   d = d || new Date();
@@ -634,11 +652,6 @@ function markVisitedCurrent(){
   if (!card) return;
   state.visited.add(card.id);
 
-  totalReviews++;
-  var today = todayDateStr();
-  dailyLog[today] = (dailyLog[today] || 0) + 1;
-  saveTotals();
-
   if (deck.cards.length > 0 && state.visited.size >= deck.cards.length){
     var key = deck.id + ':' + currentMode;
     completions[key] = (completions[key] || 0) + 1;
@@ -656,6 +669,22 @@ function rateCurrent(grade){
   if (!ratings[key]) ratings[key] = { ok: 0, meh: 0, bad: 0 };
   ratings[key][grade]++;
   saveRatings();
+
+  totalReviews++;
+  var today = todayDateStr();
+  dailyLog[today] = (dailyLog[today] || 0) + 1;
+  saveTotals();
+
+  if (deck.id === currentSubject + '-priority'){
+    var refreshed = getDeckList(currentSubject)[state.deckIdx];
+    var n = refreshed.cards.length;
+    var newOrder = []; for (var i = 0; i < n; i++) newOrder.push(i);
+    state.order = newOrder;
+    var foundIdx = refreshed.cards.findIndex(function(cd){ return cd.id === card.id; });
+    state.pos = n > 0 ? (foundIdx >= 0 ? foundIdx : Math.min(state.pos, n - 1)) : 0;
+  }
+
+  render();
   var btn = document.querySelector('.fc-rate-btn[data-grade="' + grade + '"]');
   if (btn){
     btn.classList.add('flash');
@@ -962,17 +991,23 @@ function render(){
   var pillFg = dark ? meta.fgDark : meta.fg;
   var pillStyle = 'background:' + pillBg + ';color:' + pillFg + ';';
 
+  var tally = cardTallyFor(card.id, currentMode);
+  var tallyTotal = tally.ok + tally.meh + tally.bad;
+  var accuracyHtml = '<div class="fc-card-accuracy">' +
+    (tallyTotal > 0 ? '正答率: ' + Math.round((tally.ok / tallyTotal) * 100) + '% (' + tallyTotal + '回評価)' : 'まだ評価なし') +
+    '</div>';
+
   front.innerHTML = currentMode === 'cloze'
-    ? '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' +
+    ? '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' + accuracyHtml +
       '<div class="fc-cloze-heading">' + escapeHtml(card.front.split('\n')[0]) + '</div>' +
       '<div class="fc-back-text">' + buildClozeHtml(card) + '</div>' +
       '<div class="fc-front-sub">タップして単語を確認 / 裏返すと全文表示</div>'
-    : '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' +
+    : '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' + accuracyHtml +
       '<div class="fc-front-title">' + escapeHtml(card.front) + '</div>' +
       '<div class="fc-front-sub">タップして答えを見る</div>';
 
   back.innerHTML =
-    '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' +
+    '<span class="fc-pill" style="' + pillStyle + '">' + meta.label + '</span>' + accuracyHtml +
     '<div class="fc-back-text">' + escapeHtml(stripCloze(card.back)) + '</div>' +
     (card.note ? '<div class="fc-back-note">' + escapeHtml(card.note) + '</div>' : '');
 
