@@ -62,12 +62,29 @@
   <div id="fc-tools">
     <button id="fc-shuffle">シャッフル</button>
     <button id="fc-clear-weak">苦手マークを解除</button>
+    <button id="fc-edit-toggle">✏️ 編集</button>
     <button id="fc-stats-toggle">📊 成績</button>
     <button id="fc-cal-toggle">📅 カレンダー</button>
     <button id="fc-backup-export">💾 バックアップ</button>
     <button id="fc-backup-import-btn">📂 復元</button>
     <input type="file" id="fc-backup-import-input" accept="application/json,.json" style="display:none;">
     <span id="fc-hint">クリック / Spaceキーで裏返し、←→キーで移動</span>
+  </div>
+  <div id="fc-edit-panel" style="display:none;">
+    <div id="fc-edit-title">このカードを編集</div>
+    <label class="fc-edit-label" for="fc-edit-front">表(問題文)</label>
+    <textarea id="fc-edit-front" rows="3"></textarea>
+    <label class="fc-edit-label" for="fc-edit-back">裏(回答文) ― [[ ]]で囲んだ部分が穴埋め対象になります</label>
+    <textarea id="fc-edit-back" rows="7"></textarea>
+    <div id="fc-edit-blank-tools">
+      <button id="fc-edit-wrap">選択範囲を空欄にする</button>
+      <button id="fc-edit-unwrap">空欄を解除</button>
+    </div>
+    <div id="fc-edit-actions">
+      <button id="fc-edit-save">保存</button>
+      <button id="fc-edit-revert">元の文章に戻す</button>
+      <button id="fc-edit-cancel">キャンセル</button>
+    </div>
   </div>
   <div id="fc-stats-panel" style="display:none;">
     <div id="fc-stats-title">項目別の正答率(モード別)</div>
@@ -155,7 +172,14 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
 #fc-tools{display:flex;align-items:center;gap:10px;font-size:12px;color:#8a8879;flex-wrap:wrap;margin-bottom:10px;}
 #fc-tools button{font-size:12px;padding:6px 12px;border-radius:8px;border:0.5px solid #D8D4C6;background:#FFFFFF;color:#5B5A50;cursor:pointer;}
 
-#fc-stats-panel, #fc-cal-panel{border:0.5px solid #D8D4C6;border-radius:12px;padding:14px;background:#FFFFFF;margin-bottom:10px;}
+#fc-stats-panel, #fc-cal-panel, #fc-edit-panel{border:0.5px solid #D8D4C6;border-radius:12px;padding:14px;background:#FFFFFF;margin-bottom:10px;}
+#fc-edit-title{font-size:14px;font-weight:600;margin-bottom:10px;}
+.fc-edit-label{display:block;font-size:11.5px;color:#8a8879;margin:10px 0 5px;}
+#fc-edit-front, #fc-edit-back{width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;line-height:1.6;padding:10px;border-radius:8px;border:0.5px solid #D8D4C6;background:#FAF9F5;color:#2B2B26;resize:vertical;}
+#fc-edit-blank-tools{display:flex;gap:8px;margin-top:8px;}
+#fc-edit-actions{display:flex;gap:8px;margin-top:14px;}
+#fc-edit-blank-tools button, #fc-edit-actions button{flex:1;font-size:12.5px;padding:9px 0;border-radius:8px;border:0.5px solid #D8D4C6;background:#F7F5EF;color:#2B2B26;cursor:pointer;}
+#fc-edit-save{background:#2F5D50 !important;color:#FFFFFF !important;border-color:#2F5D50 !important;}
 #fc-stats-title{font-size:14px;font-weight:600;margin-bottom:10px;}
 .fc-stats-section-title{font-size:12px;font-weight:600;color:#2F5D50;margin:4px 0 8px;}
 .fc-stats-divider{height:0.5px;background:#EAE7DB;margin:14px 0;}
@@ -223,7 +247,11 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
   #fc-tools button{background:#242420;border-color:#3A3A34;color:#B8B6A9;}
   #fc-mark{background:#242420;border-color:#3A3A34;color:#B8B6A9;}
   #fc-mark.active{background:#3a2c10;border-color:#6a5322;color:#f0c778;}
-  #fc-stats-panel, #fc-cal-panel{background:#1E1E1A;border-color:#3A3A34;}
+  #fc-stats-panel, #fc-cal-panel, #fc-edit-panel{background:#1E1E1A;border-color:#3A3A34;}
+  .fc-edit-label{color:#8f8d7f;}
+  #fc-edit-front, #fc-edit-back{background:#151512;border-color:#3A3A34;color:#EDEBE2;}
+  #fc-edit-blank-tools button, #fc-edit-actions button{background:#242420;border-color:#3A3A34;color:#EDEBE2;}
+  #fc-edit-save{background:#4C8A76 !important;color:#0E1210 !important;border-color:#4C8A76 !important;}
   .fc-stats-label{color:#B8B6A9;}
   .fc-stats-bar-track{background:#2C2C27;}
   .fc-stats-bar-fill{background:#4C8A76;}
@@ -432,6 +460,7 @@ var decks = [
 ];
 
 decks.forEach(function(d){ d.cards.forEach(function(card, idx){ card.id = d.id + '-' + idx; }); });
+decks.forEach(function(d){ d.cards.forEach(function(card){ card.originalFront = card.front; card.originalBack = card.back; }); });
 
 function shuffleArr(arr){
   var a = arr.slice();
@@ -531,6 +560,7 @@ var completions = {};
 var ratings = {};
 var dailyLog = {};
 var totalReviews = 0;
+var edits = {};
 
 var currentSubject = 'hisu1';
 var currentMode = 'full';
@@ -666,8 +696,13 @@ function saveLastMode(){ storageSet('fc-last-mode', currentMode); }
 function loadLastSubject(){ return storageGet('fc-last-subject'); }
 function saveLastSubject(){ storageSet('fc-last-subject', currentSubject); }
 
+function loadEdits(){
+  return storageGet('fc-edits').then(function(v){ return v ? JSON.parse(v) : {}; }).catch(function(){ return {}; });
+}
+function saveEdits(){ storageSet('fc-edits', JSON.stringify(edits)); }
+
 function allBackupKeys(){
-  var keys = ['weak-cards', 'fc-completions', 'fc-ratings', 'fc-totals', 'fc-last-mode', 'fc-last-subject'];
+  var keys = ['weak-cards', 'fc-completions', 'fc-ratings', 'fc-totals', 'fc-last-mode', 'fc-last-subject', 'fc-edits'];
   SUBJECTS.forEach(function(s){ ['full', 'cloze'].forEach(function(m){ keys.push('fc-progress-' + s.id + '-' + m); }); });
   return keys;
 }
@@ -753,6 +788,82 @@ function rateCurrent(grade){
   if (btn){
     btn.classList.add('flash');
     setTimeout(function(){ btn.classList.remove('flash'); }, 250);
+  }
+}
+
+var editingCardId = null;
+
+function openEditPanel(){
+  var deck = currentDeck();
+  if (!state.order.length) return;
+  var card = deck.cards[state.order[state.pos]];
+  if (!card) return;
+  editingCardId = card.id;
+  document.getElementById('fc-edit-front').value = card.front;
+  document.getElementById('fc-edit-back').value = card.back;
+  document.getElementById('fc-edit-panel').style.display = '';
+}
+
+function closeEditPanel(){
+  editingCardId = null;
+  document.getElementById('fc-edit-panel').style.display = 'none';
+}
+
+function findEditingCard(){
+  var deck = currentDeck();
+  if (!state.order.length) return null;
+  var card = deck.cards[state.order[state.pos]];
+  if (!card || card.id !== editingCardId) return null;
+  return card;
+}
+
+function saveCardEdit(){
+  var card = findEditingCard();
+  if (!card){ closeEditPanel(); return; }
+  var newFront = document.getElementById('fc-edit-front').value;
+  var newBack = document.getElementById('fc-edit-back').value;
+  card.front = newFront;
+  card.back = newBack;
+  edits[card.id] = { front: newFront, back: newBack };
+  saveEdits();
+  closeEditPanel();
+  render();
+}
+
+function revertCardEdit(){
+  var card = findEditingCard();
+  if (!card){ closeEditPanel(); return; }
+  card.front = card.originalFront;
+  card.back = card.originalBack;
+  delete edits[card.id];
+  saveEdits();
+  closeEditPanel();
+  render();
+}
+
+function wrapSelectionAsBlank(){
+  var ta = document.getElementById('fc-edit-back');
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  if (s === e){ alert('空欄にしたい文字をドラッグして選択してから押してください。'); return; }
+  var val = ta.value;
+  var selected = val.slice(s, e);
+  ta.value = val.slice(0, s) + '[[' + selected + ']]' + val.slice(e);
+  ta.focus();
+  ta.setSelectionRange(s, s + selected.length + 4);
+}
+
+function unwrapSelectionBlank(){
+  var ta = document.getElementById('fc-edit-back');
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  var val = ta.value;
+  var selected = val.slice(s, e);
+  if (selected.length >= 4 && selected.slice(0, 2) === '[[' && selected.slice(-2) === ']]'){
+    var inner = selected.slice(2, -2);
+    ta.value = val.slice(0, s) + inner + val.slice(e);
+    ta.focus();
+    ta.setSelectionRange(s, s + inner.length);
+  } else {
+    alert('選択範囲が [[ ]] で囲まれていません。[[ ]] を含めて選択してください。');
   }
 }
 
@@ -1020,6 +1131,7 @@ function render(){
   var deck = currentDeck();
   var total = state.order.length;
   var card = total > 0 ? deck.cards[state.order[state.pos]] : null;
+  if (editingCardId && (!card || card.id !== editingCardId)) closeEditPanel();
 
   var statusEl = document.getElementById('fc-status');
   var subLine = deck.sub ? (' ・ ' + deck.sub) : '';
@@ -1073,6 +1185,7 @@ function render(){
   var tallyTotal = tally.ok + tally.meh + tally.bad;
   var accuracyHtml = '<div class="fc-card-accuracy">' +
     (tallyTotal > 0 ? '正答率: ' + Math.round((tally.ok / tallyTotal) * 100) + '% (' + tallyTotal + '回評価)' : 'まだ評価なし') +
+    (edits[card.id] ? ' ・ ✏️編集済み' : '') +
     '</div>';
 
   front.innerHTML = currentMode === 'cloze'
@@ -1157,6 +1270,15 @@ document.getElementById('fc-backup-import-input').addEventListener('change', fun
   if (file) importBackupFile(file);
   e.target.value = '';
 });
+document.getElementById('fc-edit-toggle').addEventListener('click', function(){
+  var panel = document.getElementById('fc-edit-panel');
+  if (panel.style.display === 'none') openEditPanel(); else closeEditPanel();
+});
+document.getElementById('fc-edit-save').addEventListener('click', saveCardEdit);
+document.getElementById('fc-edit-revert').addEventListener('click', revertCardEdit);
+document.getElementById('fc-edit-cancel').addEventListener('click', closeEditPanel);
+document.getElementById('fc-edit-wrap').addEventListener('click', wrapSelectionAsBlank);
+document.getElementById('fc-edit-unwrap').addEventListener('click', unwrapSelectionBlank);
 document.getElementById('fc-timer-start').addEventListener('click', startTimer);
 document.getElementById('fc-timer-pause').addEventListener('click', pauseTimer);
 document.getElementById('fc-timer-reset').addEventListener('click', resetTimer);
@@ -1173,10 +1295,10 @@ render();
 
 detectStorageBackend(6, 50).then(function(backend){
   storageBackend = backend;
-  return Promise.all([loadWeakIds(), loadAllProgress(), loadCompletions(), loadTotals(), loadRatings(), loadLastMode(), loadLastSubject()]);
+  return Promise.all([loadWeakIds(), loadAllProgress(), loadCompletions(), loadTotals(), loadRatings(), loadLastMode(), loadLastSubject(), loadEdits()]);
 }).then(function(results){
   var ids = results[0], progMap = results[1], comp = results[2], totals = results[3],
-      rat = results[4], lastMode = results[5], lastSubject = results[6];
+      rat = results[4], lastMode = results[5], lastSubject = results[6], savedEdits = results[7];
 
   weakSet = new Set(ids);
   completions = comp || {};
@@ -1185,6 +1307,16 @@ detectStorageBackend(6, 50).then(function(backend){
     totalReviews = typeof totals.total === 'number' ? totals.total : 0;
     dailyLog = totals.daily || {};
   }
+  edits = savedEdits || {};
+  decks.forEach(function(d){
+    d.cards.forEach(function(card){
+      var e = edits[card.id];
+      if (e){
+        if (e.front !== undefined) card.front = e.front;
+        if (e.back !== undefined) card.back = e.back;
+      }
+    });
+  });
   savedProgressMap = progMap || {};
   sessions = {};
 
