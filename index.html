@@ -25,6 +25,11 @@
   <button class="fc-subject-btn" data-subject="kyotsu">共通チェック</button>
 </div>
 
+<div id="fc-resource-bar" style="display:none;">
+  <button id="fc-open-kanten" class="fc-resource-btn">📋 観点一覧</button>
+  <button id="fc-open-keikou" class="fc-resource-btn">📈 過去問傾向と対策</button>
+</div>
+
 <div id="fc-empty-subject" style="display:none;">
   <div class="fc-empty-msg">この科目のカードはまだ準備中です。追加され次第ここに表示されます。</div>
 </div>
@@ -130,6 +135,331 @@
   </div>
 </div>
 
+<div id="fc-kanten-overlay" class="fc-ref-overlay" style="display:none;">
+  <div class="fc-ref-modal">
+    <button id="fc-kanten-close" class="fc-ref-close" aria-label="閉じる">✕</button>
+    <div class="fc-ref-title">観点一覧(農業農村工学)</div>
+    <p class="fc-ref-intro">観点とは、その課題を導いた価値軸(何を良くしたいのか)であって、手段でも指標でもない。見分け方は一つで、その語を(2)の解決策の見出しに置けるかを試す。置けるなら手段語であり、観点にしてはいけない。「リスク管理の強化」「ストックマネジメントの導入」「LCC評価による適正規模化」はいずれも解決策の見出しとして成立してしまうため、観点には使えない。観点に向くのは行為にならない語、とくに「〜性」で終わる語で、生産性・持続性・健全性・経済性・信頼性・公平性・安全性がその典型である。軸の種類は多くなく、実務上は下表の12分類で足りる。</p>
+
+    <div class="fc-ref-section-title">観点一覧(12分類)</div>
+    <p class="fc-ref-note">左が軸、中央が観点に使える語、右が同じ軸で解決策側に置く語。右の語を観点に上げると、課題と解決策が同じことを言い始める。一つの設問では別々の軸から3つ選ぶ。</p>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>軸</th><th>観点に使える語(「〜の観点から」)</th><th>解決策側に置く語(観点にしない)</th><th>立ちやすい課題</th></tr></thead>
+        <tbody>
+          <tr><td>人・労働</td><td>労働生産性／省力性／技術の継承性</td><td>スマート農機の導入、作業受委託の拡大、研修制度</td><td>一人当たり管理面積、作業時間、後継者不在</td></tr>
+          <tr><td>施設・ストック</td><td>施設の健全性／機能の信頼性／耐久性</td><td>ストックマネジメント、長寿命化対策、予防保全、機能診断</td><td>耐用年数超過、突発事故</td></tr>
+          <tr><td>経済・財政</td><td>経済性／効率性／財政の持続性</td><td>ライフサイクルコスト評価、コスト縮減、費用便益分析</td><td>更新費の集中、賦課金収入の不足</td></tr>
+          <tr><td>農地・水資源</td><td>土地利用の効率性／水利用の合理性／水資源の安定性</td><td>集積・集約化、換地、番水計画、反復利用</td><td>分散錯圃、渇水、用水不足</td></tr>
+          <tr><td>情報・技術</td><td>相互運用性／技術の普及可能性／情報の共有性</td><td>ICT活用、RTK-GNSS導入、GISの整備、データ連携基盤</td><td>営農データの分断、機器の非互換</td></tr>
+          <tr><td>管理体制・組織</td><td>管理体制の持続性／実行性／役割分担の明確性</td><td>広域化・統合、共同利用、管理委託、協定締結</td><td>専任職員不在、賦課の担い手不足</td></tr>
+          <tr><td>地域社会</td><td>農村社会の持続性／多面的機能の発揮</td><td>活動組織の再編、多面的機能支払の活用、集落営農の設立</td><td>共同活動の減退、混住化</td></tr>
+          <tr><td>環境</td><td>環境との調和／生物多様性／環境負荷の低さ</td><td>水田魚道の設置、バイオマス利用、小水力発電</td><td>水域の分断、温室効果ガス</td></tr>
+          <tr><td>防災・減災</td><td>安全性／強靱性／気候変動への適応性</td><td>リスク管理、ハザードマップ作成、ため池改修、排水機場更新</td><td>豪雨の激甚化、決壊、湛水</td></tr>
+          <tr><td>食料・需要</td><td>食料自給力／生産の安定性／市場への適応性</td><td>作付転換、水田の汎用化、産地形成、輸出対応</td><td>需要減少、転作の定着</td></tr>
+          <tr><td>制度・計画</td><td>上位計画との整合性／公平性／実効性</td><td>地域計画の策定、換地計画、負担金制度の運用</td><td>目標地図との不整合、負担の偏り</td></tr>
+          <tr><td>安全・品質</td><td>公衆の安全／施工品質／作業の安全性</td><td>進入防止工、退避区間の設置、品質管理基準の適用</td><td>第三者事故、出来形不良</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">3つ組みの型</div>
+    <p class="fc-ref-note">必須Ⅰと選択Ⅲは「多面的な観点から課題を抽出」が設問文の要求だから、3つの観点が互いに別の次元であることが採点上の得点源になる。次のセットを型として持っておくと、現場で迷わない。</p>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>型</th><th>観点1</th><th>観点2</th><th>観点3</th><th>向く設問</th></tr></thead>
+        <tbody>
+          <tr><td>ヒト・モノ・カネ</td><td>労働生産性</td><td>ストックマネジメント(またはライフサイクルコスト)</td><td>農村社会の持続性</td><td>生産基盤全般、食料自給力</td></tr>
+          <tr><td>技術・経済・社会</td><td>技術の実装と普及</td><td>費用対効果</td><td>合意形成・社会的受容</td><td>新技術の導入を問う設問</td></tr>
+          <tr><td>生産・保全・地域</td><td>労働生産性</td><td>施設機能の信頼性</td><td>多面的機能の継承</td><td>水利システム、土地改良区</td></tr>
+          <tr><td>ハード・ソフト・体制</td><td>施設機能の信頼性</td><td>データの利活用</td><td>管理体制の持続性</td><td>管理・運用を問う設問</td></tr>
+          <tr><td>平時・非常時・将来</td><td>水利用の合理化</td><td>防災・減災</td><td>気候変動への適応</td><td>災害・気候変動を問う設問</td></tr>
+          <tr><td>農地・水・人</td><td>農地の集積・集約化</td><td>水資源の安定確保</td><td>担い手の確保・育成</td><td>農業農村工学の定番構成</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fc-ref-note">使うときは(1)の冒頭で軸を宣言しておくと、採点者が多面性を認証しやすい。例: 「本問では労働力・施設ストック・地域社会の三つの観点から課題を抽出する。」</p>
+
+    <div class="fc-ref-section-title">よくある失敗</div>
+    <p class="fc-ref-note">観点が「しっくりこない」ときは、ほぼこの5つのどれかに当たっている。</p>
+    <ol class="fc-ref-list">
+      <li>手段を観点にしている。「ICT活用の観点」「圃場整備の観点」は解決策の先取りで、課題抽出の論理が逃げる。価値側の語(データの利活用、労働生産性)に直す。</li>
+      <li>課題名と観点が同語反復。「持続的機能保全」の課題を「持続性の観点から」と導くと、何も説明していない。どちらかを別の語にする。</li>
+      <li>3つの観点の次元が揃っていない。2つが価値軸で残り1つが手法など。並べて読むと一つだけ浮くのですぐ分かる。</li>
+      <li>観点と根拠データが対応していない。提示した数値が財政と人員の話なのに観点がリスク、など。数値が指している軸を観点にするのが原則。</li>
+      <li>観点と結語がずれている。「〜の観点から、〜が課題である」の後半が、冒頭の観点ではなく別の軸を結論にしているケース。</li>
+    </ol>
+    <p class="fc-ref-note">確かめ方は簡単で、「根拠の数値→観点→課題の結語」の三つを並べて、同じ語で言い換えられるかを見る。</p>
+  </div>
+</div>
+
+<div id="fc-keikou-overlay" class="fc-ref-overlay" style="display:none;">
+  <div class="fc-ref-modal">
+    <button id="fc-keikou-close" class="fc-ref-close" aria-label="閉じる">✕</button>
+    <div class="fc-ref-title">過去問傾向 R3〜R8 と R9対策</div>
+
+    <div class="fc-ref-section-title">0. 失点の3大原因</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>罠</th><th>確認すること</th></tr></thead>
+        <tbody>
+          <tr><td>数が足りない</td><td>3つ以上／2つ以上／各2工法</td></tr>
+          <tr><td>動詞を落とす</td><td>観点を明記したうえで</td></tr>
+          <tr><td>型の取り違え</td><td>(3)はリスク？波及効果と懸念事項？</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">1. 必須Ⅰ</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>項目</th><th>傾向</th></tr></thead>
+        <tbody>
+          <tr><td>構成</td><td>(1)3課題＋観点 (2)最重要1＋複数解決策 (3)リスク等 (4)倫理・持続可能性。12問すべて固定</td></tr>
+          <tr><td>本命</td><td>Ⅰ-2。6年連続で「農業生産基盤整備の観点を含め」</td></tr>
+          <tr><td>Ⅰ-2の(3)</td><td>6年すべてリスク型</td></tr>
+          <tr><td>Ⅰ-1の(3)</td><td>波及効果型3回(R3・R5・R6)</td></tr>
+          <tr><td>場面指定</td><td>Ⅰ-1のみ4回(R4・R5・R7・R8)</td></tr>
+          <tr><td>R7〜の変化①</td><td>課題 → 技術課題</td></tr>
+          <tr><td>R7〜の変化②</td><td>農業部門の専門技術用語</td></tr>
+          <tr><td>除外条件</td><td>R7 Ⅰ-2「保全管理対策及び防災・減災対策は除く」</td></tr>
+          <tr><td>リード文の数値</td><td>R7: 240万人→123万人／R8: 約4分の1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">2. 選択Ⅱ-1(24問)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>分野</th><th>出題数</th></tr></thead>
+        <tbody>
+          <tr><td>水利計画・水理</td><td>7(最多・29%)</td></tr>
+          <tr><td>防災・ため池・地すべり</td><td>4</td></tr>
+          <tr><td>構造・耐震・ダム</td><td>3</td></tr>
+          <tr><td>農地整備・排水</td><td>3</td></tr>
+          <tr><td>環境・景観</td><td>3(R4・R5・R8)</td></tr>
+          <tr><td>施工</td><td>2</td></tr>
+          <tr><td>保全・材料劣化</td><td>1</td></tr>
+          <tr><td>利活用</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>再出題テーマ</th><th>間隔</th></tr></thead>
+        <tbody>
+          <tr><td>堰柱の耐震 R3→R8</td><td>5年</td></tr>
+          <tr><td>ため池 R4→R8</td><td>4年</td></tr>
+          <tr><td>パイプライン R3→R7→R8</td><td>4年・1年</td></tr>
+          <tr><td>地すべり R3→R7</td><td>4年</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">3. 選択Ⅱ-2(12問)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>項目</th><th>傾向</th></tr></thead>
+        <tbody>
+          <tr><td>構成</td><td>(1)調査・検討事項 (2)手順と留意点・工夫 (3)関係者との調整。例外ゼロ</td></tr>
+          <tr><td>最頻出</td><td>機能診断 12問中5問</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>機能診断: R4・R7・R8</td></tr>
+          <tr><td>R7・R8の限定語</td><td>「周辺(地盤)の変状も含めた」</td></tr>
+          <tr><td>(3)の書き方</td><td>誰と・何を・いつ・どの場で</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">4. 選択Ⅲ(12問)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>項目</th><th>傾向</th></tr></thead>
+        <tbody>
+          <tr><td>構成</td><td>必須Ⅰから(4)を除いた形</td></tr>
+          <tr><td>(3)の型</td><td>リスク8回／懸念事項4回。R8はリスク</td></tr>
+          <tr><td>Ⅲ-1</td><td>6年中5年で農業水利施設・用水</td></tr>
+          <tr><td>Ⅲ-2</td><td>環境→防災→防災→ほ場→環境→防災</td></tr>
+          <tr><td>R9のⅢ-2予想</td><td>環境がやや有力(予測に賭けすぎない)</td></tr>
+          <tr><td>R7〜の文言</td><td>あなたの選択科目に関わる技術課題</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">5. R9対策の優先順位</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>順</th><th>やること</th><th>ポイント</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Ⅱ-2仕上げ(機能診断が最優先)</td><td>周辺地盤: 不同沈下・空洞化・法面変状・漏水の流出点</td></tr>
+          <tr><td>2</td><td>除外条件の演習</td><td>保全管理・防災を封じた状態で3課題</td></tr>
+          <tr><td>3</td><td>Ⅱ-1のC評価修正と候補テーマ</td><td>各テーマ24行で書ける状態に</td></tr>
+          <tr><td>4</td><td>Ⅲ-2 環境(GHG)の追加</td><td>R7Ⅲ-2を12本目に</td></tr>
+          <tr><td>5</td><td>12月模試で3分ルール</td><td>本番の手順を体に入れる</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">6. 除外条件が来ても残る課題</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>#</th><th>課題の方向</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>大区画化・汎用化</td></tr>
+          <tr><td>2</td><td>スマート農業対応の基盤整備</td></tr>
+          <tr><td>3</td><td>農地の集積・集約(換地)</td></tr>
+          <tr><td>4</td><td>中山間地域の営農条件の改善</td></tr>
+          <tr><td>5</td><td>農村の生活環境・集落機能</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">7. Ⅱ-1 R9候補テーマ</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>テーマ</th><th>押さえる骨</th></tr></thead>
+        <tbody>
+          <tr><td>コンクリート劣化(R4)</td><td>中性化・ASR・塩害・凍害・摩耗</td></tr>
+          <tr><td>堤体の計測(R4)</td><td>浸潤線・間隙水圧・沈下・漏水量</td></tr>
+          <tr><td>暗渠排水(R5)</td><td>吸水渠・集水渠・疎水材</td></tr>
+          <tr><td>施工管理(R5)</td><td>工程・品質・安全・原価</td></tr>
+          <tr><td>小水力発電(R4)</td><td>有効落差・従属発電・管理費充当</td></tr>
+          <tr><td>区画計画(R3)</td><td>地形条件・耕区長辺・作業効率</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">8. 当日の3分ルール</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>順</th><th>指でなぞる箇所</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>除外条件のカッコ書き</td></tr>
+          <tr><td>2</td><td>場面指定の有無</td></tr>
+          <tr><td>3</td><td>(3)の型(リスク／波及効果)</td></tr>
+          <tr><td>4</td><td>Ⅱ-1で要求された数</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-section-title">9. 年度別の出題テーマ</div>
+
+    <div class="fc-ref-year-title">R8(2026)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>改正基本法・新基本計画(農地・人／技術／生産資材)</td></tr>
+          <tr><td>Ⅰ-2</td><td>中山間地域等(従事者が約4分の1へ)</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>開水路系用水路の調整池の効用</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>ため池の廃止工事</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>水撃作用と脈動現象</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>農村景観と景観配慮</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>A種頭首工(可動堰)の堰柱の耐震照査</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>RC開水路の機能診断(周辺地盤の変状を含む)</td></tr>
+          <tr><td>Ⅲ-1</td><td>既整備地域の農業用水の安定確保・供給</td></tr>
+          <tr><td>Ⅲ-2</td><td>豪雨に対する防災・減災</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-year-title">R7(2025)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>食料安全保障(食料システム／稼ぐ力／環境負荷)</td></tr>
+          <tr><td>Ⅰ-2</td><td>農業者の急減と食料自給力(除外条件あり)</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>畑地かんがい方式(3つ以上)</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>地すべりの抑制工・抑止工</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>パイプライン管体の材質と変状</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>ほ場整備の情報化施工</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>平坦な水田地帯のほ場の再整備計画</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>フローティング頭首工の機能診断(周辺の変状を含む)</td></tr>
+          <tr><td>Ⅲ-1</td><td>農業水利施設の保全管理(基幹〜末端)</td></tr>
+          <tr><td>Ⅲ-2</td><td>環境との調和(GHG排出削減)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-year-title">R6(2024)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>資材高騰下の農業経営の安定化</td></tr>
+          <tr><td>Ⅰ-2</td><td>農業者の大幅減少とデジタル技術</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>農業水利システムの水管理の課題</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>地下水位制御システム</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>田んぼダム</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>土地改良施設の耐震(地震動レベル・重要度)</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>防災重点ため池の防災工事の必要性評価</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>広域整備の環境配慮計画</td></tr>
+          <tr><td>Ⅲ-1</td><td>用水路のパイプライン化</td></tr>
+          <tr><td>Ⅲ-2</td><td>ほ場整備(土地利用の秩序化)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-year-title">R5(2023)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>食料の安定供給と農業の持続的発展</td></tr>
+          <tr><td>Ⅰ-2</td><td>食料輸入の不安定化と災害の激甚化</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>暗渠排水</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>河川取水ポンプ場の位置決定</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>土木工事の施工管理</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>生態系配慮施設の順応的管理</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>低平地水田のスマート農業対応の整備計画</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>ポンプ排水地域の排水計画見直し</td></tr>
+          <tr><td>Ⅲ-1</td><td>農業水利施設の次世代への継承</td></tr>
+          <tr><td>Ⅲ-2</td><td>ため池の防災・減災</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-year-title">R4(2022)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>みどり戦略(サプライチェーン)</td></tr>
+          <tr><td>Ⅰ-2</td><td>高齢化・農地減少とデジタル・SDGs</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>コンクリートの経年劣化</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>フィルダムの計測項目</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>小水力発電</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>ため池の環境と改修時の配慮</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>用水施設更新に伴う用水量の見直し</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>老朽化した開水路の機能診断</td></tr>
+          <tr><td>Ⅲ-1</td><td>水田の農地整備と構造改革</td></tr>
+          <tr><td>Ⅲ-2</td><td>豪雨の防災・減災(流域全体)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fc-ref-year-title">R3(2021)</div>
+    <div class="fc-ref-table-wrap">
+      <table class="fc-ref-table">
+        <thead><tr><th>問</th><th>テーマ</th></tr></thead>
+        <tbody>
+          <tr><td>Ⅰ-1</td><td>農業を成長産業にする変革</td></tr>
+          <tr><td>Ⅰ-2</td><td>産業政策と地域政策／次世代への継承</td></tr>
+          <tr><td>Ⅱ-1-1</td><td>パイプラインの3分類と型式</td></tr>
+          <tr><td>Ⅱ-1-2</td><td>AA種頭首工の堰柱の耐震照査</td></tr>
+          <tr><td>Ⅱ-1-3</td><td>水田ほ場整備の区画計画</td></tr>
+          <tr><td>Ⅱ-1-4</td><td>農地地すべりの素因・誘因と応急対策</td></tr>
+          <tr><td>Ⅱ-2-1</td><td>ため池の機能診断・健全度評価</td></tr>
+          <tr><td>Ⅱ-2-2</td><td>パイプラインの機能保全計画</td></tr>
+          <tr><td>Ⅲ-1</td><td>農業水利施設の更新・再整備</td></tr>
+          <tr><td>Ⅲ-2</td><td>環境との調和(生物ネットワーク)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
 <style>
 body{margin:0;padding:1rem;background:#F7F5EF;}
 #fc-root{font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#2B2B26;max-width:640px;margin:0 auto;padding:0.5rem 0 1rem;}
@@ -230,6 +560,26 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
 #fc-glossary-body ul{margin:0 0 10px;padding-left:20px;}
 #fc-glossary-body li{margin-bottom:6px;}
 .fc-glossary-section-title{font-size:12px;font-weight:600;color:#2F5D50;margin:14px 0 6px;}
+
+#fc-resource-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.fc-resource-btn{flex:1 1 auto;font-size:12.5px;padding:9px 10px;border-radius:8px;border:0.5px solid #D8D4C6;background:#F7F5EF;color:#2F5D50;cursor:pointer;font-weight:500;white-space:nowrap;}
+
+.fc-ref-overlay{position:fixed;inset:0;background:rgba(20,20,16,0.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:210;}
+.fc-ref-modal{position:relative;background:#FFFFFF;border-radius:14px;padding:20px;max-width:720px;width:100%;max-height:86vh;overflow-y:auto;box-sizing:border-box;}
+.fc-ref-close{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:999px;border:0.5px solid #D8D4C6;background:#F7F5EF;color:#5B5A50;font-size:14px;cursor:pointer;}
+.fc-ref-title{font-size:17px;font-weight:700;color:#2B2B26;margin:0 34px 14px 0;}
+.fc-ref-intro{font-size:13px;line-height:1.8;color:#2B2B26;margin:0 0 14px;}
+.fc-ref-note{font-size:12.5px;line-height:1.75;color:#5B5A50;margin:0 0 12px;}
+.fc-ref-section-title{font-size:13.5px;font-weight:700;color:#2F5D50;margin:20px 0 8px;padding-top:10px;border-top:0.5px solid #EAE7DB;}
+.fc-ref-year-title{font-size:12.5px;font-weight:600;color:#8a5a12;margin:14px 0 6px;}
+.fc-ref-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px;border-radius:8px;border:0.5px solid #EAE7DB;}
+.fc-ref-table{border-collapse:collapse;width:100%;font-size:11.5px;line-height:1.6;}
+.fc-ref-table th{background:#F0EBDD;color:#5c5346;font-weight:600;text-align:left;padding:7px 9px;white-space:nowrap;border-bottom:0.5px solid #EAE7DB;}
+.fc-ref-table td{padding:7px 9px;color:#2B2B26;border-bottom:0.5px solid #F0EEE5;vertical-align:top;}
+.fc-ref-table tbody tr:nth-child(even){background:#FAF9F5;}
+.fc-ref-table tbody tr:last-child td{border-bottom:none;}
+.fc-ref-list{font-size:12.5px;line-height:1.8;color:#2B2B26;margin:0 0 12px;padding-left:20px;}
+.fc-ref-list li{margin-bottom:8px;}
 #fc-stats-title{font-size:14px;font-weight:600;margin-bottom:10px;}
 .fc-stats-section-title{font-size:12px;font-weight:600;color:#2F5D50;margin:4px 0 8px;}
 .fc-stats-divider{height:0.5px;background:#EAE7DB;margin:14px 0;}
@@ -307,6 +657,19 @@ body{margin:0;padding:1rem;background:#F7F5EF;}
   #fc-glossary-title{color:#EDEBE2;}
   #fc-glossary-body{color:#EDEBE2;}
   .fc-glossary-section-title{color:#4C8A76;}
+  .fc-resource-btn{background:#242420;border-color:#3A3A34;color:#7fd4bf;}
+  .fc-ref-modal{background:#1E1E1A;}
+  .fc-ref-close{background:#242420;border-color:#3A3A34;color:#B8B6A9;}
+  .fc-ref-title{color:#EDEBE2;}
+  .fc-ref-intro{color:#EDEBE2;}
+  .fc-ref-note{color:#B8B6A9;}
+  .fc-ref-section-title{color:#4C8A76;border-top-color:#3A3A34;}
+  .fc-ref-year-title{color:#f0c778;}
+  .fc-ref-table-wrap{border-color:#3A3A34;}
+  .fc-ref-table th{background:#242420;color:#B8B6A9;border-bottom-color:#3A3A34;}
+  .fc-ref-table td{color:#EDEBE2;border-bottom-color:#2C2C27;}
+  .fc-ref-table tbody tr:nth-child(even){background:#1A1A17;}
+  .fc-ref-list{color:#EDEBE2;}
   #fc-deck-picker-btn{background:#1E1E1A;border-color:#3A3A34;color:#EDEBE2;}
   #fc-deck-picker-modal{background:#1E1E1A;}
   #fc-deck-picker-header{border-color:#3A3A34;color:#EDEBE2;}
@@ -7303,6 +7666,8 @@ function updateSubjectBar(){
 function render(){
   updateSubjectBar();
 
+  document.getElementById('fc-resource-bar').style.display = (currentSubject === 'kyotsu') ? 'flex' : 'none';
+
   var hasContent = topicDecksFor(currentSubject).length > 0;
   document.getElementById('fc-study-area').style.display = hasContent ? '' : 'none';
   document.getElementById('fc-empty-subject').style.display = hasContent ? 'none' : '';
@@ -7459,6 +7824,24 @@ document.getElementById('fc-deck-picker-btn').addEventListener('click', openDeck
 document.getElementById('fc-deck-picker-close').addEventListener('click', closeDeckPicker);
 document.getElementById('fc-deck-picker-overlay').addEventListener('click', function(e){
   if (e.target === this) closeDeckPicker();
+});
+document.getElementById('fc-open-kanten').addEventListener('click', function(){
+  document.getElementById('fc-kanten-overlay').style.display = 'flex';
+});
+document.getElementById('fc-kanten-close').addEventListener('click', function(){
+  document.getElementById('fc-kanten-overlay').style.display = 'none';
+});
+document.getElementById('fc-kanten-overlay').addEventListener('click', function(e){
+  if (e.target === this) this.style.display = 'none';
+});
+document.getElementById('fc-open-keikou').addEventListener('click', function(){
+  document.getElementById('fc-keikou-overlay').style.display = 'flex';
+});
+document.getElementById('fc-keikou-close').addEventListener('click', function(){
+  document.getElementById('fc-keikou-overlay').style.display = 'none';
+});
+document.getElementById('fc-keikou-overlay').addEventListener('click', function(e){
+  if (e.target === this) this.style.display = 'none';
 });
 document.getElementById('fc-mark').addEventListener('click', function(e){ e.stopPropagation(); toggleWeakCurrent(); });
 document.getElementById('fc-explain-btn').addEventListener('click', function(e){ e.stopPropagation(); openCardExplain(); });
